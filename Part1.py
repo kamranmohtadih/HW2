@@ -36,84 +36,103 @@ problems.append(problem_3)
 # Algorithms to apply **********************************************************
 # randomized hill climbing, simulated annealing, genetic algorithm and Mimic ***
 # ******************************************************************************
-
-def process(p):
+def process(p,counter):
+    myIter = 1000
+    myMaxAttempt = 10
+    pop_size = 400
     best_fitnesss_1 = []
     durations_1 = []
 
     schedule = ml.ExpDecay()
-    for iter in range(1000):
-        start = time.time()
-        best_state, best_fitness , curve= ml.simulated_annealing(problem= p, max_attempts=100,max_iters=iter,schedule=schedule,random_state=666)
+    start = time.time()
+    for iter in range(myMaxAttempt):
+        best_state, best_fitness , curve= ml.simulated_annealing(problem= p, max_attempts=iter,max_iters=myIter,schedule=schedule,random_state=666)
         end = time.time()
         duration = end - start
         best_fitnesss_1.append(best_fitness)
         durations_1.append(duration)
-    plt.plot(range(1000), best_fitnesss_1, label="Simulated annealing")
-    plt.xlabel('Iterations')
-    plt.ylabel('Best fitness')
-    plt.legend()
-    plt.show()
-    plt.savefig('images/Simulated_annealing-best_fitness.png')
-    plt.clf()
-    plt.close('images/Simulated_annealing-best_fitness.png')
+    fig = plt.figure()
+
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    ax1.plot(range(myMaxAttempt), best_fitnesss_1, 'b--', label='Simulated_annealing')
+    ax2.plot(durations_1, best_fitnesss_1, 'b--',label='Simulated_annealing')
+    ax1.set_xlabel('Max Attempts')
+    ax1.set_ylabel('Fitness function')
+    ax1.set_title('Best fitness')
+    ax1.legend()
+    ax2.set_xlabel('Time')
+    ax2.set_ylabel('Fitness function')
+    ax2.set_title('Time taken')
+    ax2.legend()
+
+    print('simulated annealing finished...')
+
+    mut_prob = [0.2]
+    for mp in mut_prob:
+        best_fitnesss_2 = []
+        durations_2 = []
+        start = time.time()
+        for iter in range(myMaxAttempt):
+            best_state, best_fitness , curve= ml.genetic_alg(p, max_attempts=iter, pop_size=pop_size,
+                                                   max_iters=myIter,
+                                                   mutation_prob=mp,
+                                                   random_state=666)
+            end = time.time()
+            duration = end - start
+            best_fitnesss_2.append(best_fitness)
+            durations_2.append(duration)
+
+        ax1.plot(range(myMaxAttempt), best_fitnesss_2, 'r--',label='Genetic')
+        ax2.plot(durations_2, best_fitnesss_2, 'r--',label='Genetic')
+        ax1.legend()
+        ax2.legend()
+
+    print('Genetic algorithm finished...')
 
 
-    pop_size = [100,200,300,400,500]
-    mut_prob = [0.1,0.2,0.3]
-    for ps in pop_size:
-        for mp in mut_prob:
-            best_fitnesss_2 = []
-            durations_2 = []
-            for iter in range(1000):
-                start = time.time()
-                best_state, best_fitness , curve= ml.genetic_alg(p, max_attempts=100,
-                                                       max_iters=iter,
-                                                       pop_size=ps,
-                                                       mutation_prob=mp,
-                                                       random_state=666)
-                end = time.time()
-                duration = end - start
-                best_fitnesss_2.append(best_fitness)
-                durations_2.append(duration)
-            plt.plot(range(1000), best_fitnesss_2, label="Genetic algorithm mut_prop="+mp+" pop_size="+ps)
-            plt.xlabel('Iterations')
-            plt.ylabel('Best fitness')
-    plt.legend()
-    plt.savefig('images/Gen_alg-best_fitness.png')
-    plt.clf()
-    plt.close('images/Gen_alg-best_fitness.png')
-
-
-    best_fitnesss_3 = []
-    durations_3 = []
-    restarts = [10, 20, 30, 50, 100]
+    restarts = [10]
 
     for i in restarts:
+        best_fitnesss_3 = []
+        durations_3 = []
         start = time.time()
-        state, fitness , curve= ml.random_hill_climb(problem=p, max_attempts=100, max_iters=1000, restarts=i,
-                                                     curve=True, random_state=666)
-        end = time.time()
-        duration = end - start
-        best_fitnesss_3.append(best_fitness)
-        durations_3.append(duration)
+        for iter in range(myMaxAttempt):
+            state, best_fitness , curve= ml.random_hill_climb(problem=p, max_attempts=iter, max_iters=myIter, restarts=i,
+                                                         curve=True, random_state=666)
+            end = time.time()
+            duration = end - start
+            best_fitnesss_3.append(best_fitness)
+            durations_3.append(duration)
 
+        ax1.plot(range(myMaxAttempt), best_fitnesss_3, 'y--',label='Random hill climb')
+        ax2.plot(durations_3, best_fitnesss_3, 'y--',label='Random hill climb')
+        ax1.legend()
+        ax2.legend()
+
+    print('random hill climbing finished...')
     best_fitnesss_4 = []
     durations_4 = []
-    pop_size = [100,200,300,400,500]
-
-    for ps in pop_size:
-        start = time.time()
-        state, fitness , curve= ml.mimic(problem=p, pop_size=ps, max_attempts=100, max_iters=1000, curve=True, random_state=666)
+    start = time.time()
+    for iter in range(myMaxAttempt):
+        state, best_fitness , curve= ml.mimic(problem=p, pop_size=pop_size, max_attempts=iter, max_iters=myIter, curve=True, random_state=666)
         end = time.time()
         duration = end - start
         best_fitnesss_4.append(best_fitness)
         durations_4.append(duration)
 
-    return best_fitnesss_1,best_fitnesss_2,best_fitnesss_3,best_fitnesss_4,durations_1,durations_2,durations_3,durations_4
+    ax1.plot(range(myMaxAttempt), best_fitnesss_4, 'k--',label='Mimic')
+    ax2.plot(durations_4, best_fitnesss_4, 'k--',label='Mimic')
+    ax1.legend()
+    ax2.legend()
 
+    plt.savefig('HW2/images/'+str(counter) +'.png')
+    plt.clf()
+    plt.close('HW2/images/'+str(counter) +'.png')
+    print('Mimic finished...')
 
 if __name__ == '__main__':
-    for p in problems:
-        process(p)
+    process(problems[0],"8 queens")
+    process(problems[1], "4 Peaks")
+    process(problems[2], "FlipFlop")
 
